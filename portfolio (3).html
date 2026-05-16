@@ -1,0 +1,1586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pharmacoepidemiology Portfolio</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Playfair+Display:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink:       #0e1117;
+    --paper:     #f5f0e8;
+    --cream:     #ede8dc;
+    --rule:      #c8bfad;
+    --accent1:   #1a3a5c;
+    --accent2:   #b5341e;
+    --accent3:   #1b6b4a;
+    --accent4:   #8b5e00;
+    --muted:     #6b6257;
+    --highlight: #ffd166;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: 15px;
+    line-height: 1.75;
+    overflow-x: hidden;
+  }
+
+  /* Grain overlay */
+  body::before {
+    content: '';
+    position: fixed; inset: 0; z-index: 9999;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.035'/%3E%3C/svg%3E");
+    opacity: 0.5;
+  }
+
+  /* ── HEADER ── */
+  header {
+    position: relative;
+    padding: 5rem 2rem 4rem;
+    background: var(--accent1);
+    color: var(--paper);
+    overflow: hidden;
+  }
+
+  header::after {
+    content: '';
+    position: absolute; bottom: -1px; left: 0; right: 0;
+    height: 60px;
+    background: var(--paper);
+    clip-path: polygon(0 100%, 100% 0, 100% 100%);
+  }
+
+  .header-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    align-items: end;
+  }
+
+  .header-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--highlight);
+    margin-bottom: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.1s forwards;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.6rem);
+    font-weight: 700;
+    line-height: 1.12;
+    letter-spacing: -0.02em;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.25s forwards;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--highlight);
+  }
+
+  .header-sub {
+    margin-top: 1.2rem;
+    font-size: 1rem;
+    color: rgba(245,240,232,0.75);
+    max-width: 520px;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.4s forwards;
+  }
+
+  .header-badges {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 1.8rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.55s forwards;
+  }
+
+  .badge {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.08em;
+    padding: 0.3rem 0.75rem;
+    border: 1px solid rgba(245,240,232,0.3);
+    border-radius: 2px;
+    color: var(--paper);
+    text-transform: uppercase;
+  }
+
+  .badge.r   { background: rgba(27,107,74,0.55); border-color: #1b6b4a; }
+  .badge.sas { background: rgba(181,52,30,0.55); border-color: #b5341e; }
+  .badge.rwe { background: rgba(139,94,0,0.55);  border-color: #8b5e00; }
+
+  .header-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    opacity: 0;
+    animation: fadeUp 0.6s 0.6s forwards;
+  }
+
+  .stat-pill {
+    background: rgba(245,240,232,0.08);
+    border: 1px solid rgba(245,240,232,0.15);
+    border-radius: 4px;
+    padding: 0.8rem 1.2rem;
+    text-align: center;
+  }
+
+  .stat-num {
+    display: block;
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--highlight);
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    display: block;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: rgba(245,240,232,0.6);
+    margin-top: 0.3rem;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--ink);
+    border-bottom: 1px solid rgba(245,240,232,0.08);
+  }
+
+  .nav-inner {
+    max-width: 1100px; margin: 0 auto;
+    display: flex; align-items: center; gap: 0;
+    padding: 0 2rem;
+  }
+
+  nav a {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: rgba(245,240,232,0.55);
+    text-decoration: none;
+    padding: 1rem 1.1rem;
+    transition: color 0.2s;
+    border-right: 1px solid rgba(245,240,232,0.06);
+  }
+
+  nav a:first-child { border-left: 1px solid rgba(245,240,232,0.06); }
+  nav a:hover, nav a.active { color: var(--highlight); }
+
+  /* ── MAIN LAYOUT ── */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem 5rem;
+  }
+
+  section { padding: 4rem 0 2rem; }
+
+  .section-rule {
+    display: flex; align-items: center; gap: 1rem;
+    margin-bottom: 2.5rem;
+  }
+
+  .section-rule h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .section-rule::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .section-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--muted);
+    letter-spacing: 0.12em;
+    margin-bottom: 0.3rem;
+  }
+
+  /* ── ABOUT / SKILLS ── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 2rem;
+  }
+
+  .skill-cell {
+    background: var(--paper);
+    padding: 1.5rem;
+    transition: background 0.2s;
+  }
+
+  .skill-cell:hover { background: var(--cream); }
+
+  .skill-icon {
+    font-size: 1.4rem;
+    margin-bottom: 0.6rem;
+  }
+
+  .skill-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent1);
+    margin-bottom: 0.35rem;
+  }
+
+  .skill-desc {
+    font-size: 0.82rem;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* ── STUDY CARDS ── */
+  .study-card {
+    border: 1px solid var(--rule);
+    background: var(--cream);
+    margin-bottom: 3rem;
+    overflow: hidden;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.5s, transform 0.5s;
+  }
+
+  .study-card.visible { opacity: 1; transform: translateY(0); }
+
+  .study-header {
+    display: grid;
+    grid-template-columns: 5px 1fr;
+    gap: 0;
+  }
+
+  .study-accent { background: var(--accent1); }
+  .study-card:nth-child(2) .study-accent { background: var(--accent2); }
+  .study-card:nth-child(3) .study-accent { background: var(--accent3); }
+
+  .study-header-content {
+    padding: 2rem 2rem 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: start;
+  }
+
+  .study-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+
+  .study-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 0.5rem;
+  }
+
+  .study-disease {
+    font-size: 0.85rem;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .design-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    padding: 0.35rem 0.7rem;
+    background: var(--ink);
+    color: var(--paper);
+    white-space: nowrap;
+    align-self: start;
+  }
+
+  .study-body { padding: 0 2rem 2rem; }
+
+  .study-rq {
+    background: var(--paper);
+    border-left: 3px solid var(--rule);
+    padding: 0.8rem 1rem;
+    margin: 1rem 0 1.5rem;
+    font-style: italic;
+    font-size: 0.9rem;
+    color: var(--muted);
+  }
+
+  .methods-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 1rem 0;
+  }
+
+  .method-tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.05em;
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--rule);
+    color: var(--accent1);
+    background: var(--paper);
+    text-transform: uppercase;
+  }
+
+  .study-tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 1px solid var(--rule);
+    margin-top: 1.5rem;
+  }
+
+  .tab-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.6rem 1.1rem;
+    border: none;
+    background: none;
+    cursor: pointer;
+    color: var(--muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    transition: all 0.15s;
+  }
+
+  .tab-btn.active {
+    color: var(--ink);
+    border-bottom-color: var(--ink);
+  }
+
+  .tab-content { display: none; padding: 1.5rem 0 0; }
+  .tab-content.active { display: block; }
+
+  /* ── VIZ PANELS ── */
+  .viz-panel {
+    background: var(--paper);
+    border: 1px solid var(--rule);
+    padding: 1.5rem;
+    margin: 1rem 0;
+  }
+
+  .viz-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 1.2rem;
+  }
+
+  svg text { font-family: 'DM Mono', monospace; }
+
+  /* ── KM PANEL ── */
+  #km-svg, #bar-svg, #forest-svg, #ir-svg, #sankey-svg { width: 100%; }
+
+  /* ── CODE BLOCKS ── */
+  .code-preview {
+    background: var(--ink);
+    color: #e8e0d0;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    line-height: 1.7;
+    padding: 1.5rem;
+    overflow-x: auto;
+    border-radius: 2px;
+  }
+
+  .code-preview .kw  { color: #ffd166; }
+  .code-preview .fn  { color: #86c5da; }
+  .code-preview .str { color: #a8d8a8; }
+  .code-preview .cm  { color: #7a7267; font-style: italic; }
+  .code-preview .num { color: #f4a261; }
+
+  /* ── FINDINGS ── */
+  .findings-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 1rem;
+  }
+
+  .finding-cell {
+    background: var(--paper);
+    padding: 1.2rem;
+  }
+
+  .finding-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--accent1);
+    line-height: 1;
+  }
+
+  .study-card:nth-child(2) .finding-num { color: var(--accent2); }
+  .study-card:nth-child(3) .finding-num { color: var(--accent3); }
+
+  .finding-lbl {
+    font-size: 0.8rem;
+    color: var(--muted);
+    margin-top: 0.3rem;
+  }
+
+  /* ── TOOLS SECTION ── */
+  .dual-lang {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+    margin-top: 1.5rem;
+  }
+
+  .lang-panel {
+    background: var(--paper);
+    padding: 1.5rem;
+  }
+
+  .lang-header {
+    display: flex; align-items: center; gap: 0.6rem;
+    margin-bottom: 1rem;
+  }
+
+  .lang-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+  }
+
+  .lang-dot.r   { background: var(--accent3); }
+  .lang-dot.sas { background: var(--accent2); }
+
+  .lang-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-weight: 500;
+  }
+
+  .pkg-list {
+    list-style: none;
+    display: flex; flex-wrap: wrap; gap: 0.35rem;
+  }
+
+  .pkg-list li {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    padding: 0.2rem 0.5rem;
+    background: var(--cream);
+    border: 1px solid var(--rule);
+    color: var(--muted);
+  }
+
+  /* ── FOOTER ── */
+  footer {
+    background: var(--ink);
+    color: rgba(245,240,232,0.45);
+    padding: 2rem;
+    text-align: center;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  footer strong { color: var(--highlight); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes drawLine {
+    from { stroke-dashoffset: 1000; }
+    to   { stroke-dashoffset: 0; }
+  }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 680px) {
+    .header-grid   { grid-template-columns: 1fr; }
+    .header-stats  { flex-direction: row; }
+    .dual-lang     { grid-template-columns: 1fr; }
+    .study-header-content { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════ HEADER -->
+<header>
+  <div class="header-grid">
+    <div>
+      <p class="header-eyebrow">Adam Fathalla, MPH · Pharmacoepidemiology · Real-World Evidence · Data Analytics</p>
+      <h1>Evidence from<br>the <em>Real World</em></h1>
+      <p class="header-sub">A portfolio of oncology pharmacoepidemiology studies demonstrating applied RWE methods in R and SAS — from treatment patterns to comparative effectiveness and drug safety.</p>
+      <div style="display:flex; gap:1.5rem; flex-wrap:wrap; margin-top:1rem; opacity:0; animation: fadeUp 0.6s 0.45s forwards;">
+        <a href="mailto:af879@sph.rutgers.edu" style="font-family:'DM Mono',monospace; font-size:0.72rem; color:rgba(245,240,232,0.75); text-decoration:none; display:flex; align-items:center; gap:0.4rem;">
+          <span style="color:var(--highlight);">✉</span> af879@sph.rutgers.edu
+        </a>
+        <a href="https://www.linkedin.com/in/adamfathalla" target="_blank" style="font-family:'DM Mono',monospace; font-size:0.72rem; color:rgba(245,240,232,0.75); text-decoration:none; display:flex; align-items:center; gap:0.4rem;">
+          <span style="color:var(--highlight);">in</span> linkedin.com/in/adamfathalla
+        </a>
+        <a href="https://github.com/adouma-svg" target="_blank" style="font-family:'DM Mono',monospace; font-size:0.72rem; color:rgba(245,240,232,0.75); text-decoration:none; display:flex; align-items:center; gap:0.4rem;">
+          <span style="color:var(--highlight);">⌥</span> github.com/adouma-svg
+        </a>
+      </div>
+      <div class="header-badges">
+        <span class="badge r">R + tidyverse</span>
+        <span class="badge sas">SAS 9.4</span>
+        <span class="badge rwe">Propensity Score</span>
+        <span class="badge rwe">Survival Analysis</span>
+        <span class="badge rwe">Pharmacovigilance</span>
+      </div>
+    </div>
+    <div class="header-stats">
+      <div class="stat-pill"><span class="stat-num">3</span><span class="stat-lbl">Case Studies</span></div>
+      <div class="stat-pill"><span class="stat-num">9.5K</span><span class="stat-lbl">Synthetic Patients</span></div>
+      <div class="stat-pill"><span class="stat-num">R+SAS</span><span class="stat-lbl">Dual Language</span></div>
+    </div>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════ NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="#about">About</a>
+    <a href="#study1">Study 1 · NSCLC</a>
+    <a href="#study2">Study 2 · mCRC</a>
+    <a href="#study3">Study 3 · Breast</a>
+    <a href="#tools">Tools</a>
+  </div>
+</nav>
+
+<!-- ═══════════════════════════════════════════════════════ MAIN -->
+<main>
+
+  <!-- ── ABOUT ── -->
+  <section id="about">
+    <div class="section-rule">
+      <div>
+        <p class="section-num">00 · Introduction</p>
+        <h2>Methodology at a Glance</h2>
+      </div>
+    </div>
+
+    <p style="max-width:680px; color:var(--muted);">This portfolio was built to demonstrate the core competencies required for real-world evidence and pharmacoepidemiology roles in pharma, biotech, and CROs. Each study uses a different epidemiological design, advancing in methodological complexity from descriptive to causal inference.</p>
+
+    <div class="skills-grid">
+      <div class="skill-cell">
+        <div class="skill-icon">📊</div>
+        <div class="skill-name">Descriptive RWE</div>
+        <div class="skill-desc">Treatment patterns, Table 1, time-to-treatment, health disparities</div>
+      </div>
+      <div class="skill-cell">
+        <div class="skill-icon">⚖️</div>
+        <div class="skill-name">Confounding Control</div>
+        <div class="skill-desc">IPTW, propensity scores, multivariable regression, covariate balance</div>
+      </div>
+      <div class="skill-cell">
+        <div class="skill-icon">📈</div>
+        <div class="skill-name">Survival Analysis</div>
+        <div class="skill-desc">Kaplan-Meier, Cox PH, landmark analysis, PH assumption tests</div>
+      </div>
+      <div class="skill-cell">
+        <div class="skill-icon">🛡️</div>
+        <div class="skill-name">Drug Safety</div>
+        <div class="skill-desc">Incidence rates, new-user design, negative controls, disproportionality</div>
+      </div>
+      <div class="skill-cell">
+        <div class="skill-icon">🔬</div>
+        <div class="skill-name">Bias Assessment</div>
+        <div class="skill-desc">Schoenfeld residuals, E-values, immortal time, selection bias</div>
+      </div>
+      <div class="skill-cell">
+        <div class="skill-icon">💻</div>
+        <div class="skill-name">R + SAS</div>
+        <div class="skill-desc">Parallel implementation in both platforms; reproducible, documented code</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STUDY 1 — NSCLC TREATMENT PATTERNS
+  ══════════════════════════════════════════════════════════════ -->
+  <section id="study1">
+    <div class="section-rule">
+      <div>
+        <p class="section-num">01 · Descriptive RWE</p>
+        <h2>Treatment Patterns</h2>
+      </div>
+    </div>
+
+    <div class="study-card">
+      <div class="study-header">
+        <div class="study-accent"></div>
+        <div class="study-header-content">
+          <div>
+            <p class="study-label">Study 1 · Advanced NSCLC · N = 3,000</p>
+            <h3 class="study-title">Real-World First-Line Treatment Patterns & Biomarker Testing Disparities</h3>
+            <p class="study-disease">Non-small cell lung cancer · Stages III–IV · 2018–2023</p>
+          </div>
+          <span class="design-tag">Descriptive Cohort</span>
+        </div>
+      </div>
+
+      <div class="study-body">
+        <blockquote class="study-rq">"How have first-line treatment patterns shifted since the immunotherapy era, and who is being left behind by biomarker testing gaps?"</blockquote>
+
+        <div class="methods-row">
+          <span class="method-tag">Table 1</span>
+          <span class="method-tag">Treatment Trends</span>
+          <span class="method-tag">Alluvial Diagram</span>
+          <span class="method-tag">Logistic Regression</span>
+          <span class="method-tag">Forest Plot</span>
+          <span class="method-tag">Time-to-Treatment</span>
+        </div>
+
+        <!-- TABS -->
+        <div class="study-tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'s1-viz')">Visualisation</button>
+          <button class="tab-btn" onclick="switchTab(this,'s1-findings')">Key Findings</button>
+          <button class="tab-btn" onclick="switchTab(this,'s1-code')">R Code</button>
+          <button class="tab-btn" onclick="switchTab(this,'s1-sas')">SAS Code</button>
+        </div>
+
+        <div id="s1-viz" class="tab-content active">
+          <div class="viz-panel">
+            <p class="viz-title">Figure 1 — Shift in First-Line NSCLC Treatment Mix, 2018–2023</p>
+            <svg id="bar-svg" height="280"></svg>
+          </div>
+          <div class="viz-panel" style="margin-top:1rem">
+            <p class="viz-title">Figure 2 — Forest Plot: Predictors of PDL1 Biomarker Testing</p>
+            <svg id="forest-svg" height="300"></svg>
+          </div>
+        </div>
+
+        <div id="s1-findings" class="tab-content">
+          <div class="findings-grid">
+            <div class="finding-cell"><div class="finding-num">+35pp</div><div class="finding-lbl">Increase in immunotherapy-based regimens from 2018 → 2023</div></div>
+            <div class="finding-cell"><div class="finding-num">+9 days</div><div class="finding-lbl">Longer median time-to-treatment for Medicaid vs commercial patients</div></div>
+            <div class="finding-cell"><div class="finding-num">OR 0.68</div><div class="finding-lbl">Lower odds of PDL1 testing for squamous cell vs adenocarcinoma</div></div>
+            <div class="finding-cell"><div class="finding-num">78%</div><div class="finding-lbl">Patients with stage IV disease received immunotherapy-based 1L by 2023</div></div>
+          </div>
+          <p style="margin-top:1.5rem; font-size:0.85rem; color:var(--muted); font-style:italic;">All findings based on synthetic data generated for portfolio demonstration.</p>
+        </div>
+
+        <div id="s1-code" class="tab-content">
+          <pre class="code-preview"><span class="cm"># Table 1 — Baseline characteristics by treatment group</span>
+<span class="kw">library</span>(tableone); <span class="kw">library</span>(gtsummary); <span class="kw">library</span>(broom)
+
+tab1 <span class="kw">&lt;-</span> <span class="fn">CreateTableOne</span>(
+  vars      = tab1_vars,
+  strata    = <span class="str">"tx_1L_grp"</span>,
+  data      = df,
+  factorVars = <span class="fn">setdiff</span>(tab1_vars, <span class="fn">c</span>(<span class="str">"age"</span>, <span class="str">"cci"</span>))
+)
+
+<span class="cm"># Logistic regression — predictors of PDL1 testing</span>
+mod_pdl1 <span class="kw">&lt;-</span> <span class="fn">glm</span>(pdl1_tested <span class="kw">~</span> age_cat + sex + race +
+              insurance + stage_grp + histology + ecog + year_dx,
+            data   = df,
+            family = <span class="fn">binomial</span>(link = <span class="str">"logit"</span>))
+
+<span class="cm"># Extract odds ratios with 95% CI</span>
+or_pdl1 <span class="kw">&lt;-</span> <span class="fn">tidy</span>(mod_pdl1, exponentiate = <span class="kw">TRUE</span>, conf.int = <span class="kw">TRUE</span>) |&gt;
+  <span class="fn">filter</span>(term != <span class="str">"(Intercept)"</span>) |&gt;
+  <span class="fn">mutate</span>(<span class="fn">across</span>(<span class="fn">c</span>(estimate, conf.low, conf.high), <span class="kw">~</span><span class="fn">round</span>(.x, <span class="num">3</span>)))
+
+<span class="cm"># Forest plot of odds ratios</span>
+<span class="fn">ggplot</span>(or_pdl1, <span class="fn">aes</span>(x = estimate, y = <span class="fn">fct_reorder</span>(term, estimate))) +
+  <span class="fn">geom_vline</span>(xintercept = <span class="num">1</span>, linetype = <span class="str">"dashed"</span>) +
+  <span class="fn">geom_errorbarh</span>(<span class="fn">aes</span>(xmin = conf.low, xmax = conf.high)) +
+  <span class="fn">geom_point</span>(size = <span class="num">3</span>) +
+  <span class="fn">scale_x_log10</span>()</pre>
+        </div>
+
+        <div id="s1-sas" class="tab-content">
+          <pre class="code-preview"><span class="cm">/* Table 1 — Baseline characteristics by treatment group */</span>
+<span class="kw">proc</span> <span class="fn">freq</span> data=nsclc;
+  tables (sex race insurance region stage histology
+          smoking egfr_mut alk_fusion pdl1_expr)
+         * tx_1L_grp / nocol nopercent chisq;
+<span class="kw">run;</span>
+
+<span class="kw">proc</span> <span class="fn">means</span> data=nsclc n mean std median q1 q3;
+  <span class="kw">class</span> tx_1L_grp;
+  <span class="kw">var</span> age cci days_to_tx;
+<span class="kw">run;</span>
+
+<span class="cm">/* Logistic regression — predictors of PDL1 testing */</span>
+<span class="kw">proc</span> <span class="fn">logistic</span> data=nsclc descending;
+  <span class="kw">class</span> sex        (ref=<span class="str">"Female"</span>)
+        race       (ref=<span class="str">"White"</span>)
+        insurance  (ref=<span class="str">"Commercial"</span>)
+        age_cat    (ref=<span class="str">"55-64"</span>)
+        stage_grp  (ref=<span class="str">"Stage III"</span>)
+        histology  (ref=<span class="str">"Adenocarcinoma"</span>)
+        / param=ref;
+  model pdl1_tested = age_cat sex race insurance
+                      stage_grp histology ecog year_dx
+                      / clodds=pl risklimits;
+  oddsratio age_cat / cl=pl;
+  oddsratio insurance / cl=pl;
+<span class="kw">run;</span>
+
+<span class="cm">/* Treatment trends by year */</span>
+<span class="kw">proc</span> <span class="fn">freq</span> data=nsclc;
+  tables year_dx * tx_1L_grp / norow nocol;
+<span class="kw">run;</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STUDY 2 — SURVIVAL / COMPARATIVE EFFECTIVENESS
+  ══════════════════════════════════════════════════════════════ -->
+  <section id="study2">
+    <div class="section-rule">
+      <div>
+        <p class="section-num">02 · Comparative Effectiveness</p>
+        <h2>Survival Analysis + IPTW</h2>
+      </div>
+    </div>
+
+    <div class="study-card">
+      <div class="study-header">
+        <div class="study-accent"></div>
+        <div class="study-header-content">
+          <div>
+            <p class="study-label">Study 2 · Metastatic CRC · N = 2,500</p>
+            <h3 class="study-title">FOLFOX vs FOLFIRI: Comparative Overall Survival Using Propensity Score Weighting</h3>
+            <p class="study-disease">Metastatic colorectal cancer · First-line chemotherapy</p>
+          </div>
+          <span class="design-tag">Active Comparator CER</span>
+        </div>
+      </div>
+
+      <div class="study-body">
+        <blockquote class="study-rq">"Does FOLFOX confer superior overall survival vs FOLFIRI after controlling for confounding by indication — the sicker patients who were preferentially assigned FOLFIRI?"</blockquote>
+
+        <div class="methods-row">
+          <span class="method-tag">Kaplan-Meier</span>
+          <span class="method-tag">Cox PH</span>
+          <span class="method-tag">IPTW (ATE)</span>
+          <span class="method-tag">Love Plot / SMD</span>
+          <span class="method-tag">Schoenfeld Residuals</span>
+          <span class="method-tag">Landmark Analysis</span>
+          <span class="method-tag">Subgroup Forest</span>
+        </div>
+
+        <div class="study-tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'s2-viz')">Visualisation</button>
+          <button class="tab-btn" onclick="switchTab(this,'s2-methods')">Why IPTW?</button>
+          <button class="tab-btn" onclick="switchTab(this,'s2-findings')">Key Findings</button>
+          <button class="tab-btn" onclick="switchTab(this,'s2-code')">R Code</button>
+          <button class="tab-btn" onclick="switchTab(this,'s2-sas')">SAS Code</button>
+        </div>
+
+        <div id="s2-viz" class="tab-content active">
+          <div class="viz-panel">
+            <p class="viz-title">Kaplan-Meier: Overall Survival — FOLFOX vs FOLFIRI (simulated)</p>
+            <svg id="km-svg" height="300"></svg>
+          </div>
+          <div class="viz-panel" style="margin-top:1rem">
+            <p class="viz-title">Subgroup Forest Plot — OS Hazard Ratio by Patient Subgroup</p>
+            <svg id="forest-svg-2" height="320"></svg>
+          </div>
+        </div>
+
+        <div id="s2-methods" class="tab-content">
+          <h4 style="font-family:'Playfair Display',serif; margin-bottom:0.8rem;">The Confounding Problem in RWE</h4>
+          <p style="font-size:0.9rem; color:var(--muted); margin-bottom:1rem;">In randomised trials, treatment assignment is random. In RWE, physicians choose treatment based on patient characteristics — sicker patients were more likely to receive FOLFIRI here. A naive Kaplan-Meier is therefore biased.</p>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1px; background:var(--rule); border:1px solid var(--rule);">
+            <div style="background:var(--paper); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.5rem;">Step 1</p>
+              <p style="font-weight:700; margin-bottom:0.3rem;">Estimate PS</p>
+              <p style="font-size:0.8rem; color:var(--muted);">Model probability of FOLFOX given baseline covariates using logistic regression</p>
+            </div>
+            <div style="background:var(--paper); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.5rem;">Step 2</p>
+              <p style="font-weight:700; margin-bottom:0.3rem;">Compute Weights</p>
+              <p style="font-size:0.8rem; color:var(--muted);">IPTW = 1/PS for treated; 1/(1−PS) for controls. Creates pseudo-population with balanced covariates.</p>
+            </div>
+            <div style="background:var(--paper); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.62rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--muted); margin-bottom:0.5rem;">Step 3</p>
+              <p style="font-weight:700; margin-bottom:0.3rem;">Assess Balance</p>
+              <p style="font-size:0.8rem; color:var(--muted);">Love plot shows SMD before/after weighting. Goal: all |SMD| &lt; 0.10.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="s2-findings" class="tab-content">
+          <div class="findings-grid">
+            <div class="finding-cell"><div class="finding-num">HR 0.82</div><div class="finding-lbl">Unadjusted hazard ratio, FOLFOX vs FOLFIRI</div></div>
+            <div class="finding-cell"><div class="finding-num">HR 0.86</div><div class="finding-lbl">IPTW-adjusted HR — attenuation confirms confounding present</div></div>
+            <div class="finding-cell"><div class="finding-num">p = 0.31</div><div class="finding-lbl">PH assumption test — not violated, Cox model valid</div></div>
+            <div class="finding-cell"><div class="finding-num">KRAS WT</div><div class="finding-lbl">Strongest FOLFOX benefit in KRAS wild-type subgroup</div></div>
+          </div>
+        </div>
+
+        <div id="s2-code" class="tab-content">
+          <pre class="code-preview"><span class="cm"># IPTW using WeightIt — ATE estimand</span>
+<span class="kw">library</span>(WeightIt); <span class="kw">library</span>(cobalt); <span class="kw">library</span>(survival)
+
+ps_model <span class="kw">&lt;-</span> <span class="fn">weightit</span>(
+  treatment <span class="kw">~</span> age + sex + ecog + cci + primary_site +
+    kras + braf + liver_met + n_met_sites,
+  data     = mCRC,
+  method   = <span class="str">"ps"</span>,
+  estimand = <span class="str">"ATE"</span>
+)
+
+<span class="cm"># Balance check — standardized mean differences</span>
+<span class="fn">love.plot</span>(ps_model, threshold = <span class="num">0.1</span>)
+
+<span class="cm"># Weighted Cox model (robust sandwich SE)</span>
+cox_iptw <span class="kw">&lt;-</span> <span class="fn">coxph</span>(
+  <span class="fn">Surv</span>(os_months, os_event) <span class="kw">~</span> treatment,
+  data    = mCRC,
+  weights = ps_model$weights,
+  robust  = <span class="kw">TRUE</span>
+)
+<span class="fn">tidy</span>(cox_iptw, exponentiate = <span class="kw">TRUE</span>, conf.int = <span class="kw">TRUE</span>)
+
+<span class="cm"># Landmark analysis at 12 months</span>
+landmark_12 <span class="kw">&lt;-</span> mCRC <span class="kw">|&gt;</span> <span class="fn">filter</span>(os_months <span class="kw">&gt;=</span> <span class="num">12</span>) <span class="kw">|&gt;</span>
+  <span class="fn">mutate</span>(os_lm = os_months <span class="kw">-</span> <span class="num">12</span>)
+<span class="fn">coxph</span>(<span class="fn">Surv</span>(os_lm, os_event) <span class="kw">~</span> treatment + age + ecog + cci,
+      data = landmark_12)</pre>
+        </div>
+
+        <div id="s2-sas" class="tab-content">
+          <pre class="code-preview"><span class="cm">/* Kaplan-Meier — Overall Survival */</span>
+<span class="kw">proc</span> <span class="fn">lifetest</span> data=mcrc
+    plots=survival(atrisk cl test)
+    timelist= <span class="num">6 12 18 24 36 48</span>;
+  time os_months * os_event(<span class="num">0</span>);
+  strata treatment / test=logrank;
+<span class="kw">run;</span>
+
+<span class="cm">/* Multivariable Cox PH */</span>
+<span class="kw">proc</span> <span class="fn">phreg</span> data=mcrc;
+  <span class="kw">class</span> treatment (ref=<span class="str">"FOLFIRI"</span>) sex kras braf
+        primary_site / param=ref;
+  model os_months * os_event(<span class="num">0</span>) =
+    treatment age sex ecog cci primary_site
+    kras braf n_met_sites liver_met
+    / ties=efron rl;
+  hazardratio treatment / cl=pl;
+<span class="kw">run;</span>
+
+<span class="cm">/* Propensity Score + IPTW Weighted Cox */</span>
+<span class="kw">proc</span> <span class="fn">logistic</span> data=mcrc descending;
+  <span class="kw">class</span> treatment sex kras braf primary_site / param=ref;
+  model trt_folfox = age sex ecog cci primary_site
+                     kras braf liver_met n_met_sites;
+  output out=ps_out p=ps_hat;
+<span class="kw">run;</span>
+
+data ps_weighted;
+  set ps_out;
+  <span class="kw">if</span> treatment=<span class="str">"FOLFOX"</span> <span class="kw">then</span> sw_iptw = <span class="num">0.5</span> / ps_hat;
+  <span class="kw">else</span> sw_iptw = <span class="num">0.5</span> / (<span class="num">1</span> - ps_hat);
+<span class="kw">run;</span>
+
+<span class="kw">proc</span> <span class="fn">phreg</span> data=ps_weighted covs(aggregate);
+  <span class="kw">class</span> treatment (ref=<span class="str">"FOLFIRI"</span>) / param=ref;
+  model os_months * os_event(<span class="num">0</span>) = treatment / ties=efron rl;
+  weight sw_iptw; id patient_id;
+<span class="kw">run;</span>
+
+<span class="cm">/* Landmark analysis at 12 months */</span>
+data landmark;
+  set mcrc; where os_months >= <span class="num">12</span>;
+  os_lm = os_months - <span class="num">12</span>;
+<span class="kw">run;</span>
+<span class="kw">proc</span> <span class="fn">phreg</span> data=landmark;
+  <span class="kw">class</span> treatment (ref=<span class="str">"FOLFIRI"</span>) / param=ref;
+  model os_lm * os_event(<span class="num">0</span>) = treatment age ecog cci / ties=efron rl;
+<span class="kw">run;</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════════════════════
+       STUDY 3 — DRUG SAFETY
+  ══════════════════════════════════════════════════════════════ -->
+  <section id="study3">
+    <div class="section-rule">
+      <div>
+        <p class="section-num">03 · Drug Safety</p>
+        <h2>Pharmacovigilance</h2>
+      </div>
+    </div>
+
+    <div class="study-card">
+      <div class="study-header">
+        <div class="study-accent"></div>
+        <div class="study-header-content">
+          <div>
+            <p class="study-label">Study 3 · HR+ Breast Cancer · N = 4,000</p>
+            <h3 class="study-title">Cardiovascular Safety of CDK4/6 Inhibitors: New-User Active-Comparator Study with Negative Control Validation</h3>
+            <p class="study-disease">Hormone receptor-positive, HER2-negative breast cancer</p>
+          </div>
+          <span class="design-tag">Safety Cohort</span>
+        </div>
+      </div>
+
+      <div class="study-body">
+        <blockquote class="study-rq">"Are CDK4/6 inhibitors — palbociclib, ribociclib, abemaciclib — associated with elevated cardiovascular risk vs endocrine monotherapy, and can we validate this using a negative control outcome?"</blockquote>
+
+        <div class="methods-row">
+          <span class="method-tag">Incidence Rates (Exact CI)</span>
+          <span class="method-tag">Poisson Regression</span>
+          <span class="method-tag">IRR</span>
+          <span class="method-tag">New-User Design</span>
+          <span class="method-tag">Active Comparator</span>
+          <span class="method-tag">Negative Control</span>
+          <span class="method-tag">ROR / Disproportionality</span>
+        </div>
+
+        <div class="study-tabs">
+          <button class="tab-btn active" onclick="switchTab(this,'s3-viz')">Visualisation</button>
+          <button class="tab-btn" onclick="switchTab(this,'s3-design')">Study Design</button>
+          <button class="tab-btn" onclick="switchTab(this,'s3-findings')">Key Findings</button>
+          <button class="tab-btn" onclick="switchTab(this,'s3-code')">R Code</button>
+          <button class="tab-btn" onclick="switchTab(this,'s3-sas')">SAS Code</button>
+        </div>
+
+        <div id="s3-viz" class="tab-content active">
+          <div class="viz-panel">
+            <p class="viz-title">CV Event Incidence Rates per 100 Person-Years (95% Exact Poisson CI)</p>
+            <svg id="ir-svg" height="260"></svg>
+          </div>
+          <div class="viz-panel" style="margin-top:1rem">
+            <p class="viz-title">Adverse Event Profile Heatmap — CDK4/6 Inhibitors vs Endocrine Monotherapy</p>
+            <svg id="heatmap-svg" height="200"></svg>
+          </div>
+        </div>
+
+        <div id="s3-design" class="tab-content">
+          <h4 style="font-family:'Playfair Display',serif; margin-bottom:0.8rem;">Why These Design Choices Matter</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.5rem;">
+            <div style="background:var(--paper); border:1px solid var(--rule); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent3); margin-bottom:0.6rem;">New-User Design</p>
+              <p style="font-size:0.83rem; color:var(--muted);">Restricts to patients <em>initiating</em> therapy. Eliminates depletion-of-susceptibles bias (prevalent users have already tolerated the drug) and immortal time bias.</p>
+            </div>
+            <div style="background:var(--paper); border:1px solid var(--rule); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent3); margin-bottom:0.6rem;">Active Comparator</p>
+              <p style="font-size:0.83rem; color:var(--muted);">Comparing to endocrine monotherapy (same indication) rather than "no treatment" minimises confounding by indication and channelling bias.</p>
+            </div>
+            <div style="background:var(--paper); border:1px solid var(--rule); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent3); margin-bottom:0.6rem;">Negative Control Outcome</p>
+              <p style="font-size:0.83rem; color:var(--muted);">Urinary tract infection has no biological link to CDK4/6 inhibitors. A non-null result would flag unmeasured confounding. A null result increases confidence in study validity.</p>
+            </div>
+            <div style="background:var(--paper); border:1px solid var(--rule); padding:1.2rem;">
+              <p style="font-family:'DM Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--accent3); margin-bottom:0.6rem;">Exact Poisson CI</p>
+              <p style="font-size:0.83rem; color:var(--muted);">Normal approximation CIs fail with small event counts. Exact Poisson CIs (chi-square method) are used for reliable interval estimation.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="s3-findings" class="tab-content">
+          <div class="findings-grid">
+            <div class="finding-cell"><div class="finding-num">HR 1.48</div><div class="finding-lbl">Ribociclib CV event hazard ratio vs endocrine mono (95% CI: 1.12–1.96)</div></div>
+            <div class="finding-cell"><div class="finding-num">3×</div><div class="finding-lbl">Grade 3+ neutropenia rate with palbociclib vs endocrine — confirmed class effect</div></div>
+            <div class="finding-cell"><div class="finding-num">IRR 1.02</div><div class="finding-lbl">UTI (negative control) — null result validates study design</div></div>
+            <div class="finding-cell"><div class="finding-num">ROR 2.1</div><div class="finding-lbl">Disproportionality signal for ribociclib-associated CV events</div></div>
+          </div>
+        </div>
+
+        <div id="s3-code" class="tab-content">
+          <pre class="code-preview"><span class="cm"># Exact Poisson incidence rates per 100 person-years</span>
+ir_table <span class="kw">&lt;-</span> breast_ca |&gt;
+  <span class="fn">group_by</span>(treatment) |&gt;
+  <span class="fn">summarise</span>(
+    n_events = <span class="fn">sum</span>(cv_event),
+    py       = <span class="fn">sum</span>(person_years),
+    ir       = n_events / py * <span class="num">100</span>,
+    ir_lower = <span class="fn">qchisq</span>(<span class="num">0.025</span>, <span class="num">2</span> * n_events)     / (<span class="num">2</span> * py) * <span class="num">100</span>,
+    ir_upper = <span class="fn">qchisq</span>(<span class="num">0.975</span>, <span class="num">2</span> * (n_events + <span class="num">1</span>)) / (<span class="num">2</span> * py) * <span class="num">100</span>
+  )
+
+<span class="cm"># Poisson regression — IRRs</span>
+poisson_fit <span class="kw">&lt;-</span> <span class="fn">glm</span>(
+  cv_event <span class="kw">~</span> treatment + age + htn + prior_cvd + cci +
+    <span class="fn">offset</span>(<span class="fn">log</span>(<span class="fn">pmax</span>(person_years, <span class="num">0.01</span>))),
+  data   = breast_ca,
+  family = <span class="fn">poisson</span>(link = <span class="str">"log"</span>)
+)
+
+<span class="cm"># Negative control outcome — UTI</span>
+uti_fit <span class="kw">&lt;-</span> <span class="fn">glm</span>(
+  uti_event <span class="kw">~</span> cdk46i + age + cci +
+    <span class="fn">offset</span>(<span class="fn">log</span>(<span class="fn">pmax</span>(person_years, <span class="num">0.01</span>))),
+  data = breast_ca, family = <span class="fn">poisson</span>()
+)
+<span class="cm"># Expected: exp(coef) ~ 1.0 — confirms no systematic bias</span></pre>
+        </div>
+
+        <div id="s3-sas" class="tab-content">
+          <pre class="code-preview"><span class="cm">/* Incidence Rates with Exact Poisson CI */</span>
+<span class="kw">proc</span> <span class="fn">means</span> data=bc noprint;
+  <span class="kw">class</span> treatment;
+  <span class="kw">var</span> cv_event person_years;
+  output out=rate_dat
+    sum(cv_event)=n_events
+    sum(person_years)=total_py;
+<span class="kw">run;</span>
+
+data rate_final;
+  set rate_dat; where _type_=<span class="num">1</span>;
+  ir       = n_events / total_py * <span class="num">100</span>;
+  ir_lower = cinv(<span class="num">0.025</span>, <span class="num">2</span>*n_events)     / (<span class="num">2</span>*total_py) * <span class="num">100</span>;
+  ir_upper = cinv(<span class="num">0.975</span>, <span class="num">2</span>*(n_events+<span class="num">1</span>)) / (<span class="num">2</span>*total_py) * <span class="num">100</span>;
+<span class="kw">run;</span>
+
+<span class="cm">/* Poisson Regression — Incidence Rate Ratios */</span>
+<span class="kw">proc</span> <span class="fn">genmod</span> data=bc2;
+  <span class="kw">class</span> treatment (ref=<span class="str">"Endocrine Monotherapy"</span>) / param=ref;
+  model cv_event = treatment age htn prior_cvd cci
+      / dist=poisson link=log offset=log_py;
+  estimate <span class="str">"Ribociclib vs Control"</span> treatment <span class="num">0 1 0 -1</span> / exp;
+  estimate <span class="str">"Palbociclib vs Control"</span> treatment <span class="num">1 0 0 -1</span> / exp;
+<span class="kw">run;</span>
+
+<span class="cm">/* Negative Control — UTI (should show IRR ~ 1.0) */</span>
+<span class="kw">proc</span> <span class="fn">genmod</span> data=bc2;
+  <span class="kw">class</span> cdk46i / param=ref;
+  model uti_event = cdk46i age cci
+      / dist=poisson link=log offset=log_py;
+  estimate <span class="str">"CDK4/6i vs Endocrine"</span> cdk46i <span class="num">1</span> / exp;
+<span class="kw">run;</span>
+
+<span class="cm">/* New-User Active-Comparator Cox Model */</span>
+<span class="kw">proc</span> <span class="fn">phreg</span> data=ac_cohort;
+  <span class="kw">class</span> treatment (ref=<span class="str">"Endocrine Monotherapy"</span>)
+        age_cat   (ref=<span class="str">"50-59"</span>) / param=ref;
+  model cv_time * cv_event(<span class="num">0</span>) =
+    treatment age_cat htn prior_cvd cci diabetes
+    / ties=efron rl;
+  hazardratio treatment / cl=pl;
+<span class="kw">run;</span></pre>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── TOOLS ── -->
+  <section id="tools">
+    <div class="section-rule">
+      <div>
+        <p class="section-num">04 · Technical Stack</p>
+        <h2>R & SAS — Both Platforms</h2>
+      </div>
+    </div>
+
+    <p style="max-width:640px; color:var(--muted); margin-bottom:2rem; font-size:0.9rem;">Pharmaceutical RWE teams use both R and SAS. Regulatory-facing analyses (CDISC, FDA submissions) often require SAS; exploratory analyses and visualisations increasingly use R. This portfolio is implemented fully in both.</p>
+
+    <div class="dual-lang">
+      <div class="lang-panel">
+        <div class="lang-header">
+          <span class="lang-dot r"></span>
+          <span class="lang-name">R Ecosystem</span>
+        </div>
+        <ul class="pkg-list">
+          <li>tidyverse</li><li>survival</li><li>survminer</li>
+          <li>WeightIt</li><li>cobalt</li><li>tableone</li>
+          <li>gtsummary</li><li>ggalluvial</li><li>broom</li>
+          <li>patchwork</li><li>lubridate</li><li>purrr</li>
+          <li>RColorBrewer</li><li>scales</li>
+        </ul>
+        <p style="margin-top:1rem; font-size:0.8rem; color:var(--muted);">All analyses reproducible via a single <code>Rscript</code> command per study.</p>
+      </div>
+      <div class="lang-panel">
+        <div class="lang-header">
+          <span class="lang-dot sas"></span>
+          <span class="lang-name">SAS Procedures</span>
+        </div>
+        <ul class="pkg-list">
+          <li>PROC FREQ</li><li>PROC MEANS</li><li>PROC LOGISTIC</li>
+          <li>PROC PHREG</li><li>PROC LIFETEST</li><li>PROC GENMOD</li>
+          <li>PROC UNIVARIATE</li><li>DATA Step</li><li>%MACRO</li>
+          <li>ODS EXCEL</li><li>ODS GRAPHICS</li><li>PROC SQL</li>
+        </ul>
+        <p style="margin-top:1rem; font-size:0.8rem; color:var(--muted);">Reusable macro library (<code>macros.sas</code>) with IPTW, subgroup loops, and incidence rate utilities.</p>
+      </div>
+    </div>
+
+    <!-- GitHub CTA -->
+    <div style="margin-top:2.5rem; background:var(--ink); color:var(--paper); padding:2rem; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+      <div>
+        <p style="font-family:'DM Mono',monospace; font-size:0.65rem; text-transform:uppercase; letter-spacing:0.15em; color:var(--highlight); margin-bottom:0.4rem;">GitHub Repository</p>
+        <p style="font-size:1.05rem; font-weight:700;">Full code, datasets & documentation</p>
+        <p style="font-size:0.83rem; color:rgba(245,240,232,0.55); margin-top:0.3rem;">R scripts · SAS programs · Synthetic data · Interview walkthrough guide</p>
+      </div>
+      <div style="font-family:'DM Mono',monospace; font-size:0.75rem; letter-spacing:0.05em; padding:0.8rem 1.5rem; border:1px solid rgba(245,240,232,0.3); color:var(--paper);">
+        github.com/adouma-svg/pharmacoepi-portfolio
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <strong>Adam Fathalla, MPH</strong> · PhD Candidate, Pharmacoepidemiology · Rutgers University · 
+  <a href="mailto:af879@sph.rutgers.edu" style="color:var(--highlight); text-decoration:none;">af879@sph.rutgers.edu</a> · 
+  <a href="https://www.linkedin.com/in/adamfathalla" target="_blank" style="color:var(--highlight); text-decoration:none;">LinkedIn</a> · 
+  <a href="https://github.com/adouma-svg" target="_blank" style="color:var(--highlight); text-decoration:none;">GitHub</a>
+  <br><span style="opacity:0.4; font-size:0.6rem; margin-top:0.4rem; display:block;">All data synthetic — for portfolio demonstration only · Built with R, SAS & D3.js</span>
+</footer>
+
+<!-- ═══════════════════════════════════════════════════════ D3 CHARTS -->
+<script>
+// ── Utilities ────────────────────────────────────────────────────────────────
+const fmt1 = d3.format(".1f");
+const COLORS = {
+  blue:   "#1a3a5c",
+  red:    "#b5341e",
+  green:  "#1b6b4a",
+  amber:  "#8b5e00",
+  grey:   "#9e9488",
+  yellow: "#ffd166",
+  paper:  "#f5f0e8",
+  cream:  "#ede8dc",
+  rule:   "#c8bfad",
+  muted:  "#6b6257"
+};
+
+function getW(id) {
+  const el = document.getElementById(id);
+  return el ? el.parentElement.clientWidth - 30 : 600;
+}
+
+// ── TAB SWITCHING ─────────────────────────────────────────────────────────────
+function switchTab(btn, contentId) {
+  const card = btn.closest('.study-card');
+  card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  card.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(contentId).classList.add('active');
+}
+
+// ── STACKED BAR: Treatment Trends ────────────────────────────────────────────
+function drawBar() {
+  const years = [2018,2019,2020,2021,2022,2023];
+  const groups = ["EGFR TKI","ALK Inhibitor","Pembrolizumab mono","Chemo-Immuno","Chemo alone"];
+  const colors = [COLORS.blue, COLORS.green, COLORS.red, COLORS.amber, COLORS.grey];
+  // Proportion data (simplified trends)
+  const data = [
+    [0.15, 0.05, 0.10, 0.30, 0.40],
+    [0.15, 0.05, 0.18, 0.35, 0.27],
+    [0.15, 0.05, 0.27, 0.38, 0.15],
+    [0.15, 0.05, 0.35, 0.37, 0.08],
+    [0.15, 0.05, 0.40, 0.35, 0.05],
+    [0.15, 0.05, 0.45, 0.33, 0.02],
+  ];
+
+  const W = getW('bar-svg'), H = 280;
+  const mg = {t:20, r:140, b:40, l:50};
+  const w = W-mg.l-mg.r, h = H-mg.t-mg.b;
+
+  const svg = d3.select('#bar-svg').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform',`translate(${mg.l},${mg.t})`);
+
+  const x = d3.scaleBand().domain(years).range([0,w]).padding(0.22);
+  const y = d3.scaleLinear().domain([0,1]).range([h,0]);
+
+  // Draw stacked bars
+  years.forEach((yr,yi) => {
+    let cum = 0;
+    groups.forEach((grp,gi) => {
+      const val = data[yi][gi];
+      g.append('rect')
+        .attr('x', x(yr)).attr('y', y(cum+val))
+        .attr('width', x.bandwidth())
+        .attr('height', y(cum)-y(cum+val))
+        .attr('fill', colors[gi]).attr('opacity', 0.88);
+      cum += val;
+    });
+  });
+
+  // Axes
+  g.append('g').attr('transform',`translate(0,${h})`)
+    .call(d3.axisBottom(x).tickSize(0))
+    .call(g=>g.select('.domain').remove())
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','10px');
+
+  g.append('g')
+    .call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.0%')))
+    .call(g=>g.select('.domain').remove())
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','10px');
+
+  // Legend
+  groups.forEach((grp,i) => {
+    const ly = mg.t + i*22;
+    svg.append('rect').attr('x',W-mg.r+10).attr('y',ly).attr('width',10).attr('height',10).attr('fill',colors[i]);
+    svg.append('text').attr('x',W-mg.r+26).attr('y',ly+9)
+      .text(grp).style('font-family','DM Mono,monospace').style('font-size','9.5px').attr('fill',COLORS.muted);
+  });
+}
+
+// ── FOREST PLOT: PDL1 Testing Predictors ─────────────────────────────────────
+function drawForest() {
+  const items = [
+    { label:"Age 75+ vs 55-64",    or:0.72, lo:0.55, hi:0.93 },
+    { label:"Black vs White",      or:0.80, lo:0.62, hi:1.02 },
+    { label:"Medicaid vs Comm.",   or:0.74, lo:0.58, hi:0.94 },
+    { label:"Squamous vs Adeno",   or:0.68, lo:0.55, hi:0.83 },
+    { label:"ECOG 2 vs 0",         or:0.71, lo:0.56, hi:0.91 },
+    { label:"Stage IV vs III",     or:1.18, lo:0.98, hi:1.42 },
+    { label:"Year (per year)",     or:1.22, lo:1.15, hi:1.30 },
+  ];
+  const W = getW('forest-svg'), H = 300;
+  const mg = {t:15, r:160, b:30, l:180};
+  const w = W-mg.l-mg.r, h = H-mg.t-mg.b;
+
+  const svg = d3.select('#forest-svg').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform',`translate(${mg.l},${mg.t})`);
+
+  const allVals = items.flatMap(d=>[d.lo,d.hi]);
+  const xExtent = [Math.min(...allVals)*0.85, Math.max(...allVals)*1.1];
+  const x = d3.scaleLinear().domain(xExtent).range([0,w]);
+  const y = d3.scaleBand().domain(items.map(d=>d.label)).range([0,h]).padding(0.3);
+
+  g.append('line').attr('x1',x(1)).attr('x2',x(1)).attr('y1',0).attr('y2',h)
+    .attr('stroke',COLORS.rule).attr('stroke-dasharray','4,3');
+
+  items.forEach(d=>{
+    const cy = y(d.label)+y.bandwidth()/2;
+    const col = d.or < 1 ? COLORS.green : (d.lo > 1 ? COLORS.red : COLORS.grey);
+    g.append('line')
+      .attr('x1',x(d.lo)).attr('x2',x(d.hi)).attr('y1',cy).attr('y2',cy)
+      .attr('stroke',col).attr('stroke-width',1.8);
+    g.append('rect')
+      .attr('x',x(d.or)-5).attr('y',cy-5).attr('width',10).attr('height',10)
+      .attr('fill',col);
+    // Label left
+    g.append('text').attr('x',-8).attr('y',cy+4).attr('text-anchor','end')
+      .text(d.label).style('font-family','DM Mono,monospace').style('font-size','10px').attr('fill',COLORS.muted);
+    // Value right
+    const val = `${d.or.toFixed(2)} (${d.lo.toFixed(2)}–${d.hi.toFixed(2)})`;
+    g.append('text').attr('x',w+8).attr('y',cy+4)
+      .text(val).style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.muted);
+  });
+
+  g.append('g').attr('transform',`translate(0,${h})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.format('.2f')))
+    .call(g=>g.select('.domain').attr('stroke',COLORS.rule))
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','9px');
+
+  g.append('text').attr('x',x(1)).attr('y',h+26).attr('text-anchor','middle')
+    .text('Odds Ratio (95% CI)').style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.muted);
+}
+
+// ── KM CURVES ─────────────────────────────────────────────────────────────────
+function drawKM() {
+  const W = getW('km-svg'), H = 300;
+  const mg = {t:20, r:120, b:50, l:55};
+  const w = W-mg.l-mg.r, h = H-mg.t-mg.b;
+
+  // Simulated Weibull KM points
+  function weibullS(t, scale, shape) { return Math.exp(-Math.pow(t/scale, shape)); }
+  const ticks = d3.range(0, 61, 2);
+
+  const curveFOLFOX  = ticks.map(t=>({ t, s: weibullS(t, 26, 1.3) }));
+  const curveFOLFIRI = ticks.map(t=>({ t, s: weibullS(t, 22, 1.3) }));
+
+  const svg = d3.select('#km-svg').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform',`translate(${mg.l},${mg.t})`);
+
+  const x = d3.scaleLinear().domain([0,60]).range([0,w]);
+  const y = d3.scaleLinear().domain([0,1]).range([h,0]);
+
+  const line = d3.line().x(d=>x(d.t)).y(d=>y(d.s)).curve(d3.curveStepAfter);
+
+  // CI bands (approx)
+  const areaFOX = d3.area().x(d=>x(d.t))
+    .y0(d=>y(Math.max(0, weibullS(d.t, 24, 1.3))))
+    .y1(d=>y(Math.min(1, weibullS(d.t, 28, 1.3))))
+    .curve(d3.curveStepAfter);
+  const areaIRI = d3.area().x(d=>x(d.t))
+    .y0(d=>y(Math.max(0, weibullS(d.t, 20, 1.3))))
+    .y1(d=>y(Math.min(1, weibullS(d.t, 24, 1.3))))
+    .curve(d3.curveStepAfter);
+
+  g.append('path').datum(curveFOLFOX).attr('d',areaFOX).attr('fill',COLORS.blue).attr('opacity',0.12);
+  g.append('path').datum(curveFOLFIRI).attr('d',areaIRI).attr('fill',COLORS.red).attr('opacity',0.12);
+  g.append('path').datum(curveFOLFOX).attr('d',line).attr('fill','none').attr('stroke',COLORS.blue).attr('stroke-width',2.2);
+  g.append('path').datum(curveFOLFIRI).attr('d',line).attr('fill','none').attr('stroke',COLORS.red).attr('stroke-width',2.2).attr('stroke-dasharray','6,3');
+
+  // Reference lines at median
+  [[26,COLORS.blue],[22,COLORS.red]].forEach(([s,c])=>{
+    const med = s * Math.pow(Math.log(2), 1/1.3);
+    g.append('line').attr('x1',x(med)).attr('x2',x(med)).attr('y1',y(0.5)).attr('y2',h)
+      .attr('stroke',c).attr('stroke-dasharray','3,3').attr('opacity',0.5);
+    g.append('line').attr('x1',0).attr('x2',x(med)).attr('y1',y(0.5)).attr('y2',y(0.5))
+      .attr('stroke',c).attr('stroke-dasharray','3,3').attr('opacity',0.5);
+  });
+
+  // Axes
+  g.append('g').attr('transform',`translate(0,${h})`).call(d3.axisBottom(x).ticks(8))
+    .call(g=>g.select('.domain').attr('stroke',COLORS.rule))
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','10px');
+  g.append('g').call(d3.axisLeft(y).ticks(5).tickFormat(d3.format('.0%')))
+    .call(g=>g.select('.domain').attr('stroke',COLORS.rule))
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','10px');
+
+  g.append('text').attr('x',w/2).attr('y',h+38).attr('text-anchor','middle')
+    .text('Time (months)').style('font-family','DM Mono,monospace').style('font-size','10px').attr('fill',COLORS.muted);
+  g.append('text').attr('transform','rotate(-90)').attr('x',-h/2).attr('y',-40).attr('text-anchor','middle')
+    .text('Survival Probability').style('font-family','DM Mono,monospace').style('font-size','10px').attr('fill',COLORS.muted);
+
+  // Legend
+  const lg = svg.append('g').attr('transform',`translate(${W-mg.r+8},${mg.t+20})`);
+  [[COLORS.blue,"FOLFOX (n=1264)",'none'],[COLORS.red,"FOLFIRI (n=1236)",'6,3']].forEach(([c,lbl,da],i)=>{
+    lg.append('line').attr('x1',0).attr('x2',22).attr('y1',i*20).attr('y2',i*20)
+      .attr('stroke',c).attr('stroke-width',2).attr('stroke-dasharray',da);
+    lg.append('text').attr('x',28).attr('y',i*20+4).text(lbl)
+      .style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.muted);
+  });
+
+  // Annotation
+  g.append('text').attr('x',x(38)).attr('y',y(0.62))
+    .text('IPTW-adj HR = 0.86').style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.blue);
+  g.append('text').attr('x',x(38)).attr('y',y(0.57))
+    .text('(95% CI: 0.77–0.96)').style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.blue);
+}
+
+// ── STUDY 2 FOREST PLOT ───────────────────────────────────────────────────────
+function drawForest2() {
+  const items = [
+    { label:"All patients",     or:0.86, lo:0.77, hi:0.96 },
+    { label:"Age < 65",         or:0.82, lo:0.70, hi:0.97 },
+    { label:"Age ≥ 65",         or:0.91, lo:0.77, hi:1.06 },
+    { label:"Male",             or:0.84, lo:0.72, hi:0.98 },
+    { label:"Female",           or:0.89, lo:0.74, hi:1.07 },
+    { label:"ECOG 0–1",         or:0.83, lo:0.73, hi:0.95 },
+    { label:"ECOG 2",           or:0.92, lo:0.74, hi:1.14 },
+    { label:"KRAS Mutant",      or:0.93, lo:0.78, hi:1.11 },
+    { label:"KRAS Wild-type",   or:0.78, lo:0.66, hi:0.93 },
+    { label:"Liver Mets: Yes",  or:0.85, lo:0.74, hi:0.97 },
+    { label:"Liver Mets: No",   or:0.89, lo:0.70, hi:1.14 },
+  ];
+  const W = getW('forest-svg-2'), H = 320;
+  const mg = {t:15, r:175, b:30, l:145};
+  const w = W-mg.l-mg.r, h = H-mg.t-mg.b;
+
+  const svg = d3.select('#forest-svg-2').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform',`translate(${mg.l},${mg.t})`);
+
+  const x = d3.scaleLinear().domain([0.55,1.3]).range([0,w]);
+  const y = d3.scaleBand().domain(items.map(d=>d.label)).range([0,h]).padding(0.28);
+
+  g.append('line').attr('x1',x(1)).attr('x2',x(1)).attr('y1',0).attr('y2',h)
+    .attr('stroke',COLORS.rule).attr('stroke-dasharray','4,3');
+
+  items.forEach((d,i)=>{
+    const cy = y(d.label)+y.bandwidth()/2;
+    const isAll = d.label==="All patients";
+    const col = isAll ? COLORS.blue : (d.lo > 1 ? COLORS.red : (d.hi < 1 ? COLORS.green : COLORS.grey));
+    g.append('line').attr('x1',x(d.lo)).attr('x2',x(d.hi)).attr('y1',cy).attr('y2',cy)
+      .attr('stroke',col).attr('stroke-width',isAll?2.5:1.6);
+    if (isAll) {
+      g.append('rect').attr('x',x(d.or)-6).attr('y',cy-6).attr('width',12).attr('height',12)
+        .attr('fill',COLORS.blue);
+    } else {
+      g.append('circle').attr('cx',x(d.or)).attr('cy',cy).attr('r',4.5).attr('fill',col);
+    }
+    g.append('text').attr('x',-6).attr('y',cy+4).attr('text-anchor','end')
+      .text(d.label).style('font-family','DM Mono,monospace')
+      .style('font-size', isAll ? '10.5px' : '9.5px')
+      .style('font-weight', isAll ? '600' : '400')
+      .attr('fill', isAll ? COLORS.blue : COLORS.muted);
+    const val = `${d.or.toFixed(2)} (${d.lo.toFixed(2)}–${d.hi.toFixed(2)})`;
+    g.append('text').attr('x',w+8).attr('y',cy+4).text(val)
+      .style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.muted);
+  });
+
+  g.append('g').attr('transform',`translate(0,${h})`)
+    .call(d3.axisBottom(x).ticks(5).tickFormat(d3.format('.2f')))
+    .call(g=>g.select('.domain').attr('stroke',COLORS.rule))
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','9px');
+
+  g.append('text').attr('x',x(1)).attr('y',h+26).attr('text-anchor','middle')
+    .text('Hazard Ratio (95% CI) — FOLFOX vs FOLFIRI')
+    .style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.muted);
+}
+
+// ── INCIDENCE RATES (Study 3) ────────────────────────────────────────────────
+function drawIR() {
+  const data = [
+    { drug:"Endocrine Mono",  ir:3.1, lo:2.3, hi:4.1, col:COLORS.grey   },
+    { drug:"Palbociclib",     ir:4.2, lo:3.3, hi:5.3, col:COLORS.blue   },
+    { drug:"Abemaciclib",     ir:4.8, lo:3.8, hi:6.1, col:COLORS.amber  },
+    { drug:"Ribociclib",      ir:6.4, lo:5.2, hi:7.9, col:COLORS.red    },
+  ];
+  const W = getW('ir-svg'), H = 260;
+  const mg = {t:20, r:30, b:50, l:160};
+  const w = W-mg.l-mg.r, h = H-mg.t-mg.b;
+
+  const svg = d3.select('#ir-svg').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform',`translate(${mg.l},${mg.t})`);
+
+  const x = d3.scaleLinear().domain([0,9]).range([0,w]);
+  const y = d3.scaleBand().domain(data.map(d=>d.drug)).range([0,h]).padding(0.4);
+
+  // Reference line at endocrine
+  g.append('line').attr('x1',x(3.1)).attr('x2',x(3.1)).attr('y1',0).attr('y2',h)
+    .attr('stroke',COLORS.rule).attr('stroke-dasharray','4,3');
+
+  data.forEach(d=>{
+    const cy = y(d.drug)+y.bandwidth()/2;
+    g.append('line').attr('x1',x(d.lo)).attr('x2',x(d.hi)).attr('y1',cy).attr('y2',cy)
+      .attr('stroke',d.col).attr('stroke-width',2.5);
+    g.append('line').attr('x1',x(d.lo)).attr('x2',x(d.lo)).attr('y1',cy-6).attr('y2',cy+6)
+      .attr('stroke',d.col).attr('stroke-width',1.5);
+    g.append('line').attr('x1',x(d.hi)).attr('x2',x(d.hi)).attr('y1',cy-6).attr('y2',cy+6)
+      .attr('stroke',d.col).attr('stroke-width',1.5);
+    g.append('circle').attr('cx',x(d.ir)).attr('cy',cy).attr('r',7).attr('fill',d.col);
+    g.append('text').attr('x',-8).attr('y',cy+4).attr('text-anchor','end')
+      .text(d.drug).style('font-family','DM Mono,monospace').style('font-size','10.5px').attr('fill',COLORS.muted);
+    g.append('text').attr('x',x(d.hi)+8).attr('y',cy+4)
+      .text(`${d.ir.toFixed(1)}`).style('font-family','DM Mono,monospace').style('font-size','10px').attr('fill',d.col).style('font-weight','600');
+  });
+
+  g.append('g').attr('transform',`translate(0,${h})`).call(d3.axisBottom(x).ticks(6))
+    .call(g=>g.select('.domain').attr('stroke',COLORS.rule))
+    .selectAll('text').style('font-family','DM Mono,monospace').style('font-size','10px');
+  g.append('text').attr('x',w/2).attr('y',h+38).attr('text-anchor','middle')
+    .text('Events per 100 Person-Years').style('font-family','DM Mono,monospace').style('font-size','10px').attr('fill',COLORS.muted);
+}
+
+// ── HEATMAP (Study 3) ────────────────────────────────────────────────────────
+function drawHeatmap() {
+  const drugs = ["Palbociclib","Ribociclib","Abemaciclib","Endocrine Mono"];
+  const aes   = ["CV Event","Gr3+ Neutropenia","UTI (Neg. Ctrl)"];
+  const vals  = [
+    [4.2, 38, 7.8],
+    [6.4, 34, 8.1],
+    [4.8, 31, 7.6],
+    [3.1,  5, 8.0],
+  ];
+
+  const W = getW('heatmap-svg'), H = 200;
+  const mg = {t:30, r:20, b:30, l:130};
+  const w = W-mg.l-mg.r, h = H-mg.t-mg.b;
+
+  const svg = d3.select('#heatmap-svg').attr('viewBox',`0 0 ${W} ${H}`);
+  svg.selectAll('*').remove();
+  const g = svg.append('g').attr('transform',`translate(${mg.l},${mg.t})`);
+
+  const cw = w/aes.length, ch = h/drugs.length;
+
+  // Color scales per column
+  const scales = [
+    d3.scaleSequential().domain([2.5,7]).interpolator(d3.interpolate("#f5f0e8","#b5341e")),
+    d3.scaleSequential().domain([0,45]).interpolator(d3.interpolate("#f5f0e8","#1a3a5c")),
+    d3.scaleSequential().domain([5,12]).interpolator(d3.interpolate("#f5f0e8","#6b6257")),
+  ];
+
+  drugs.forEach((drug,di)=>{
+    aes.forEach((ae,ai)=>{
+      const v = vals[di][ai];
+      g.append('rect')
+        .attr('x',ai*cw+1).attr('y',di*ch+1)
+        .attr('width',cw-2).attr('height',ch-2)
+        .attr('fill',scales[ai](v)).attr('rx',2);
+      g.append('text')
+        .attr('x',ai*cw+cw/2).attr('y',di*ch+ch/2+4)
+        .attr('text-anchor','middle')
+        .text(`${v.toFixed(1)}%`)
+        .style('font-family','DM Mono,monospace').style('font-size','10.5px')
+        .style('font-weight','600')
+        .attr('fill', v > 20 ? '#f5f0e8' : COLORS.muted);
+    });
+    g.append('text').attr('x',-8).attr('y',di*ch+ch/2+4).attr('text-anchor','end')
+      .text(drug).style('font-family','DM Mono,monospace').style('font-size','9.5px').attr('fill',COLORS.muted);
+  });
+
+  aes.forEach((ae,ai)=>{
+    g.append('text').attr('x',ai*cw+cw/2).attr('y',-8).attr('text-anchor','middle')
+      .text(ae).style('font-family','DM Mono,monospace').style('font-size','9px').attr('fill',COLORS.muted);
+  });
+}
+
+// ── INTERSECTION OBSERVER for card animations ─────────────────────────────────
+const observer = new IntersectionObserver(entries=>{
+  entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('visible'); });
+},{threshold:0.1});
+document.querySelectorAll('.study-card').forEach(c=>observer.observe(c));
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+window.addEventListener('load', ()=>{
+  drawBar();
+  drawForest();
+  drawKM();
+  drawForest2();
+  drawIR();
+  drawHeatmap();
+});
+
+window.addEventListener('resize', ()=>{
+  drawBar(); drawForest(); drawKM(); drawForest2(); drawIR(); drawHeatmap();
+});
+
+// Nav active state
+const sections = document.querySelectorAll('section[id]');
+window.addEventListener('scroll', ()=>{
+  let current='';
+  sections.forEach(s=>{ if(window.scrollY >= s.offsetTop-80) current=s.id; });
+  document.querySelectorAll('nav a').forEach(a=>{
+    a.classList.toggle('active', a.getAttribute('href')==='#'+current);
+  });
+});
+</script>
+</body>
+</html>
