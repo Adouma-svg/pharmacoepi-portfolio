@@ -204,14 +204,14 @@ For SAS: open each `.sas` file in SAS EG or SAS Studio and submit from the portf
 
 ## Methodological Competencies Demonstrated
 
-- ✅ Real-world evidence study design (descriptive, CER, safety)
-- ✅ Claims/EHR data structure and variable construction
-- ✅ Confounding control: multivariable regression, propensity score IPTW
-- ✅ Time-to-event analysis: KM, Cox PH, competing risks concepts
-- ✅ Bias assessment: PH assumption, landmark analysis, negative controls
-- ✅ Health disparities analysis (insurance, race, access)
-- ✅ Dual proficiency: R (tidyverse + survival) and SAS (Base + STAT)
-- ✅ Reproducible, well-documented, version-controlled code
+-  Real-world evidence study design (descriptive, CER, safety)
+-  Claims/EHR data structure and variable construction
+-  Confounding control: multivariable regression, propensity score IPTW
+-  Time-to-event analysis: KM, Cox PH, competing risks concepts
+-  Bias assessment: PH assumption, landmark analysis, negative controls
+-  Health disparities analysis (insurance, race, access)
+-  Dual proficiency: R (tidyverse + survival) and SAS (Base + STAT)
+-  Reproducible, well-documented, version-controlled code
 
 ---
 
