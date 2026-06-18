@@ -1,7 +1,7 @@
 # Pharmacoepidemiology & Real-World Evidence Portfolio
 
 **Adam Fathalla, MPH** | PhD Student in Pharmacoepidemiology  
-📧 af879@sph.rutgers.edu | 🌐 [portfolio-url] | 💼 [LinkedIn] | 🐙 [GitHub]
+📧 af879@sph.rutgers.edu | 🌐 [(https://adouma-svg.github.io/pharmacoepi-portfolio/)] | 💼 [www.linkedin.com/in/adamfathalla] | 🐙 [GitHub]
 
 ---
 
